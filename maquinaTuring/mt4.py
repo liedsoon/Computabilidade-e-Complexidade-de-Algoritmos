@@ -1,61 +1,68 @@
-#MT que aceita qualquer string binária que comece e termine com o mesmo caractere.
+# Máquina de Turing que aceita strings binárias que
+# começam e terminam com o mesmo caractere.
 class TuringMachine:
-    def __init__(self, tape, initial_state, final_states, transitions):
-        self.tape = list(tape)  # A fita é representada como uma lista de caracteres
-        self.head = 0           # A cabeça começa na posição inicial
-        self.state = initial_state
-        self.final_states = final_states
-        self.transitions = transitions
+    def __init__(self, fita, estado_inicial, estados_finais, transicoes):
+        # Inicializa os atributos da Máquina de Turing
+        self.fita = list(fita)  # Converte a fita em uma lista para facilitar alterações
+        self.cabecote = 0  # Define a posição inicial do cabeçote
+        self.estado = estado_inicial  # Define o estado inicial da máquina
+        self.estados_finais = estados_finais  # Conjunto de estados finais (aceitação/rejeição)
+        self.transicoes = transicoes  # Dicionário de transições
 
-    def step(self):
-        char = self.tape[self.head]  # Lê o caractere atual
-        if (self.state, char) in self.transitions:
-            new_state, write_char, move = self.transitions[(self.state, char)]
-            self.tape[self.head] = write_char  # Escreve o novo caractere na fita
-            self.state = new_state             # Atualiza o estado
-            if move == 'R':
-                self.head += 1
-            elif move == 'L':
-                self.head -= 1
+    def passo(self):
+        # Executa um único passo da Máquina de Turing
+        caractere = self.fita[self.cabecote]  # Lê o caractere na posição atual do cabeçote
+        if (self.estado, caractere) in self.transicoes:  # Verifica se há transição válida
+            novo_estado, escrever_caractere, movimento = self.transicoes[(self.estado, caractere)]
+            self.fita[self.cabecote] = escrever_caractere  # Escreve o caractere na fita
+            self.estado = novo_estado  # Atualiza o estado atual
+            # Move o cabeçote na direção especificada
+            if movimento == 'R':  # Direita
+                self.cabecote += 1
+            elif movimento == 'L':  # Esquerda
+                self.cabecote -= 1
         else:
-            self.state = 'q_reject'  # Transição inválida leva ao estado de rejeição
+            # Vai para o estado de rejeição se não houver transição válida
+            self.estado = 'q_rejeitar'
 
-    def run(self):
-        while self.state not in self.final_states:
-            self.step()
-        return self.state
+    def executar(self):
+        # Executa a máquina até alcançar um estado final
+        while self.estado not in self.estados_finais:  # Continua enquanto o estado atual não for final
+            self.passo()  # Executa um passo
+        return self.estado  # Retorna o estado final (aceitar/rejeitar)
+
 
 # Definição da fita, estados e transições
-tape = "0111100010 "  # Exemplo de entrada (a fita termina com um espaço em branco)
-initial_state = 'q0'
-final_states = {'q_accept', 'q_reject'}
-transitions = {
-    # Estado inicial: verificar o primeiro caractere
-    ('q0', '0'): ('q1', '0', 'R'),  # Se for '0', marcar para verificação
-    ('q0', '1'): ('q2', '1', 'R'),  # Se for '1', marcar para verificação
-    ('q0', ' '): ('q_reject', ' ', 'R'),  # String vazia é rejeitada
+fita = "0111100010 "  # Exemplo de entrada
 
-    # Verificar correspondência do último caractere para '0'
+estado_inicial = 'q0'  # Estado inicial
+estados_finais = {'q_aceitar', 'q_rejeitar'}  # Estados finais
+transicoes = {
+    # Estado inicial: identificar o primeiro caractere
+    ('q0', '0'): ('q1', '0', 'R'),  # Se o primeiro for '0', prepare para verificar o último
+    ('q0', '1'): ('q2', '1', 'R'),  # Se o primeiro for '1', prepare para verificar o último
+    ('q0', ' '): ('q_rejeitar', ' ', 'R'),  # String vazia é rejeitada
+
+    # Movendo-se para o final da fita ao começar com '0'
     ('q1', '0'): ('q1', '0', 'R'),
     ('q1', '1'): ('q1', '1', 'R'),
-    ('q1', ' '): ('q3', ' ', 'L'),  # Ao chegar no espaço, volte para verificar
+    ('q1', ' '): ('q3', ' ', 'L'),  # Quando chegar ao espaço, volta para verificar
 
-    # Verificar correspondência do último caractere para '1'
+    # Movendo-se para o final da fita ao começar com '1'
     ('q2', '0'): ('q2', '0', 'R'),
     ('q2', '1'): ('q2', '1', 'R'),
-    ('q2', ' '): ('q4', ' ', 'L'),
+    ('q2', ' '): ('q4', ' ', 'L'),  # Quando chegar ao espaço, volta para verificar
 
-    # Verificação do último caractere para '0'
-    ('q3', '0'): ('q_accept', '0', 'R'),  # Aceita se o último for '0'
-    ('q3', '1'): ('q_reject', '1', 'R'),  # Rejeita se não for
+    # Verificação do último caractere ao começar com '0'
+    ('q3', '0'): ('q_aceitar', '0', 'R'),  # Aceita se o último for '0'
+    ('q3', '1'): ('q_rejeitar', '1', 'R'),  # Rejeita se o último for '1'
 
-    # Verificação do último caractere para '1'
-    ('q4', '0'): ('q_reject', '0', 'R'),  # Rejeita se não for
-    ('q4', '1'): ('q_accept', '1', 'R'),  # Aceita se o último for '1'
-
+    # Verificação do último caractere ao começar com '1'
+    ('q4', '0'): ('q_rejeitar', '0', 'R'),  # Rejeita se o último for '0'
+    ('q4', '1'): ('q_aceitar', '1', 'R'),  # Aceita se o último for '1'
 }
 
 # Criação e execução da máquina de Turing
-tm = TuringMachine(tape, initial_state, final_states, transitions)
-result = tm.run()
-print(f"Resultado: {tape}-", result)
+mt = TuringMachine(fita, estado_inicial, estados_finais, transicoes)
+resultado = mt.executar()
+print(f"Resultado: {fita}-", resultado)
