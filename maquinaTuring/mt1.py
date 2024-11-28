@@ -1,44 +1,51 @@
-# reconhece a linguagem sobre o alfabeto {0, 1}, onde todas as strings terminam com “1”
+# Reconhece a linguagem sobre o alfabeto {0, 1}, onde todas as strings terminam com "1"
 class TuringMachine:
-    def __init__(self, tape, initial_state, final_states, transitions):
-        self.tape = list(tape)
-        self.head = 0
-        self.state = initial_state
-        self.final_states = final_states
-        self.transitions = transitions
+    def __init__(self, fita, estado_inicial, estados_finais, transicoes):
+        # Inicializa os atributos da Máquina de Turing
+        self.fita = list(fita)  # A fita da máquina, convertida para uma lista para permitir modificações
+        self.cabecote = 0  # Cabeçote começa na posição 0
+        self.estado = estado_inicial  # Define o estado inicial da máquina
+        self.estados_finais = estados_finais  # Conjunto de estados finais (parada)
+        self.transicoes = transicoes  # Dicionário de transições: {(estado_atual, caractere_lido): (novo_estado, caractere_escrito, direção)}
 
-    def step(self):
-        char = self.tape[self.head]
-        if (self.state, char) in self.transitions:
-            new_state, write_char, move = self.transitions[(self.state, char)]
-            self.tape[self.head] = write_char
-            self.state = new_state
-            if move == 'R':
-                self.head += 1
-            elif move == 'L':
-                self.head -= 1
+    def passo(self):
+        # Executa um único passo da Máquina de Turing
+        caractere = self.fita[self.cabecote]  # Lê o caractere na posição atual do cabeçote
+        if (self.estado, caractere) in self.transicoes:  # Verifica se existe uma transição válida
+            # Obtém a transição correspondente
+            novo_estado, escrever_caractere, movimento = self.transicoes[(self.estado, caractere)]
+            self.fita[self.cabecote] = escrever_caractere  # Escreve o novo caractere na fita
+            self.estado = novo_estado  # Atualiza o estado atual
+            # Move o cabeçote de acordo com a direção especificada
+            if movimento == 'R':  # Move para a direita
+                self.cabecote += 1
+            elif movimento == 'L':  # Move para a esquerda
+                self.cabecote -= 1
         else:
-            self.state = 'reject'
+            # Se não houver transição válida, entra em estado de rejeição
+            self.estado = 'rejeitar'
 
-    def run(self):
-        while self.state not in self.final_states:
-            self.step()
-        return self.state
+    def executar(self):
+        # Executa a máquina até atingir um estado final
+        while self.estado not in self.estados_finais:  # Continua enquanto o estado atual não for final
+            self.passo()  # Executa um passo
+        return self.estado  # Retorna o estado final (aceitar ou rejeitar)
+
 
 # Definição da fita, estados e transições
-tape = "0110111 "  # Adicione um espaço em branco no final
-initial_state = 'q0'
-final_states = {'q_accept', 'q_reject'}
-transitions = {
+fita = "0110111 "  # Adicione um espaço em branco no final
+estado_inicial = 'q0'
+estados_finais = {'q_aceitar', 'q_rejeitar'}
+transicoes = {
     ('q0', '0'): ('q0', '0', 'R'),
     ('q0', '1'): ('q1', '1', 'R'),
-    ('q0', ' '): ('q_reject', ' ', 'R'),
+    ('q0', ' '): ('q_rejeitar', ' ', 'R'),
     ('q1', '0'): ('q0', '0', 'R'),
     ('q1', '1'): ('q1', '1', 'R'),
-    ('q1', ' '): ('q_accept', ' ', 'R')
+    ('q1', ' '): ('q_aceitar', ' ', 'R')
 }
 
-# Criação e execução da máquina de Turing
-tm = TuringMachine(tape, initial_state, final_states, transitions)
-result = tm.run()
-print(f"Resultado: {tape}-", result)
+# Criação da Máquina de Turing e execução
+mt = TuringMachine(fita, estado_inicial, estados_finais, transicoes)
+resultado = mt.executar()
+print(f"Resultado: {fita}-", resultado)
